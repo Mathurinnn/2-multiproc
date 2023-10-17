@@ -9,6 +9,7 @@ SCIPER		: Your SCIPER numbers
 #include <stdio.h>
 #include <stdlib.h>
 #include "utility.h"
+#include <omp.h>
 
 int perform_bucket_computation(int, int, int);
 
@@ -31,13 +32,45 @@ int main (int argc, const char *argv[]) {
     return 0;
 }
 
+
+
 int perform_buckets_computation(int num_threads, int num_samples, int num_buckets) {
-    volatile int *histogram = (int*) calloc(num_buckets, sizeof(int));
-    rand_gen generator = init_rand();
-    for(int i = 0; i < num_samples; i++){
-        int val = next_rand(generator) * num_buckets;
-        histogram[val]++;
+
+
+    typedef struct {
+        int val;
+        int padding[64 / sizeof(int) -1];
+    } padded_counter;
+
+    omp_set_num_threads(num_threads);
+    rand_gen generator;
+    volatile padded_counter histogram[num_buckets];
+    for (int i = 0; i < num_buckets; ++i) {
+        histogram->val = 0;
     }
-    free_rand(generator);
+    #pragma omp parallel default(none) shared(num_threads, num_samples, num_buckets, histogram) private(generator)
+    {
+        generator = init_rand();
+        int padded[num_buckets];
+
+        for (int i = 0; i < num_buckets; ++i) {
+            padded[i] = 0;
+        }
+
+        #pragma omp for
+        for (int i = 0; i < num_samples; i++) {
+            int val = next_rand(generator) * num_buckets;
+            padded[val]++;
+        }
+        free_rand(generator);
+
+
+
+            for (int i = 0; i < num_buckets; ++i) {
+                #pragma omp atomic
+                histogram[i].val += padded[i];
+            }
+
+    }
     return 0;
 }
