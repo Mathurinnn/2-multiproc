@@ -61,7 +61,6 @@ int perform_buckets_computation(int num_threads, int num_samples, int num_bucket
         }
         free_rand(generator);
         for (int i = 0; i < num_buckets; ++i) {
-            #pragma omp atomic
             histogram[i].val += padded[i];
         }
     }
