@@ -1,8 +1,8 @@
 /*
 ============================================================================
 Filename    : pi.c
-Author      : Your names goes here
-SCIPER		: Your SCIPER numbers
+Author      : Madeline Desautel, Mathurin Verclytte
+SCIPER		: 346981, 346153
 ============================================================================
 */
 
@@ -32,10 +32,7 @@ int main (int argc, const char *argv[]) {
     return 0;
 }
 
-
-
 int perform_buckets_computation(int num_threads, int num_samples, int num_buckets) {
-
 
     typedef struct {
         int val;
@@ -63,14 +60,10 @@ int perform_buckets_computation(int num_threads, int num_samples, int num_bucket
             padded[val]++;
         }
         free_rand(generator);
-
-
-
-            for (int i = 0; i < num_buckets; ++i) {
-                #pragma omp atomic
-                histogram[i].val += padded[i];
-            }
-
+        for (int i = 0; i < num_buckets; ++i) {
+            #pragma omp atomic
+            histogram[i].val += padded[i];
+        }
     }
     return 0;
 }
