@@ -11,17 +11,10 @@ SCIPER      : 346981, 346153
 #define INPUT(I,J) input[(I)*length+(J)]
 #define OUTPUT(I,J) output[(I)*length+(J)]
 #define PADDED(I,J) padded[(I)*length+(J)]
-#define INPUTPADDED(I,J) inputpadded[(I)*length+(J)].val
-
-typedef struct {
-    double val;
-    double padding[64 / sizeof(double) -1];
-} padded_struct;
 
 void simulate(double *input, double *output, int threads, int length, int iterations) {
     double *temp;
     double padded[length*length];
-    padded_struct inputpadded[length*length];
     int is[length*length];
     int js[length*length];
     int count;
@@ -29,7 +22,7 @@ void simulate(double *input, double *output, int threads, int length, int iterat
 
     for (int n = 0; n < iterations; n++) {
 
-        #pragma omp parallel default(none) private(padded, is, js, count) shared(iterations, input, output, length, temp, inputpadded)
+        #pragma omp parallel default(none) private(padded, is, js, count) shared(iterations, input, output, length, temp)
         {
             count = -1;
             for (int i = 0; i < length; ++i) {
@@ -37,15 +30,6 @@ void simulate(double *input, double *output, int threads, int length, int iterat
                     PADDED(i,j) = 0;
                     is[i*length+j] = -1;
                     js[i*length+j] = -1;
-                }
-            }
-
-#pragma omp single
-            {
-                for (int i = 0; i < length; ++i) {
-                    for (int j = 0; j < length; ++j) {
-                        INPUTPADDED(i, j) = INPUT(i, j);
-                    }
                 }
             }
 
@@ -59,9 +43,9 @@ void simulate(double *input, double *output, int threads, int length, int iterat
                     count++;
                     is[count] = i;
                     js[count] = j;
-                    PADDED(i,j) = (INPUTPADDED(i - 1, j - 1) + INPUTPADDED(i - 1, j) + INPUTPADDED(i - 1, j + 1) +
-                            INPUTPADDED(i, j - 1) + INPUTPADDED(i, j) + INPUTPADDED(i, j + 1) +
-                            INPUTPADDED(i + 1, j - 1) + INPUTPADDED(i + 1, j) + INPUTPADDED(i + 1, j + 1)) / 9;
+                    PADDED(i,j) = (INPUT(i - 1, j - 1) + INPUT(i - 1, j) + INPUT(i - 1, j + 1) +
+                            INPUT(i, j - 1) + INPUT(i, j) + INPUT(i, j + 1) +
+                            INPUT(i + 1, j - 1) + INPUT(i + 1, j) + INPUT(i + 1, j + 1)) / 9;
                 }
             }
             
