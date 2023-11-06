@@ -24,12 +24,11 @@ void simulate(double *input, double *output, int threads, int length, int iterat
         #pragma omp parallel default(none) private(values, is, js, count) shared(iterations, input, output, length, temp, threads)
         {
             count = -1;
-            for (int i = 0; i < length*length/threads; ++i) {
+            for (int i = 0; i < length*length/threads +1; ++i) {
                 is[i] = -1;
                 js[i] = -1;
                 values[i] = 0;
             }
-
 
             #pragma omp for collapse(2)
             for (int i = 1; i < length - 1; i++) {
