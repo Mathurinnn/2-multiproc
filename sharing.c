@@ -34,35 +34,24 @@ int main (int argc, const char *argv[]) {
 
 int perform_buckets_computation(int num_threads, int num_samples, int num_buckets) {
 
-    typedef struct {
-        int val;
-        int padding[64 / sizeof(int) -1];
-    } padded_counter;
 
     omp_set_num_threads(num_threads);
     rand_gen generator;
-    volatile padded_counter histogram[num_buckets];
+    int histogram[num_buckets];
     for (int i = 0; i < num_buckets; ++i) {
-        histogram->val = 0;
+        histogram[i] = 0;
     }
     #pragma omp parallel default(none) shared(num_threads, num_samples, num_buckets, histogram) private(generator)
     {
         generator = init_rand();
-        int threadArray[num_buckets];
-
-        for (int i = 0; i < num_buckets; ++i) {
-            threadArray[i] = 0;
-        }
 
         #pragma omp for
         for (int i = 0; i < num_samples; i++) {
             int val = next_rand(generator) * num_buckets;
-            threadArray[val]++;
+            histogram[val]++;
         }
         free_rand(generator);
-        for (int i = 0; i < num_buckets; ++i) {
-            histogram[i].val += threadArray[i];
-        }
+
     }
     return 0;
 }
