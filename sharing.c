@@ -48,20 +48,20 @@ int perform_buckets_computation(int num_threads, int num_samples, int num_bucket
     #pragma omp parallel default(none) shared(num_threads, num_samples, num_buckets, histogram) private(generator)
     {
         generator = init_rand();
-        int padded[num_buckets];
+        int threadArray[num_buckets];
 
         for (int i = 0; i < num_buckets; ++i) {
-            padded[i] = 0;
+            threadArray[i] = 0;
         }
 
         #pragma omp for
         for (int i = 0; i < num_samples; i++) {
             int val = next_rand(generator) * num_buckets;
-            padded[val]++;
+            threadArray[val]++;
         }
         free_rand(generator);
         for (int i = 0; i < num_buckets; ++i) {
-            histogram[i].val += padded[i];
+            histogram[i].val += threadArray[i];
         }
     }
     return 0;
